@@ -4,6 +4,7 @@ import cors from 'cors';
 
 import widgetRouter from './interfaces/widget/routes.js';
 import { registerTelegramWebhook } from './interfaces/telegram/webhook.js';
+import { embed } from './core/rag.js';
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -27,4 +28,7 @@ app.listen(PORT, () => {
   console.log(`   Health:        GET  /health`);
   console.log(`   Widget API:    POST /widget/chat`);
   console.log(`   Widget script: GET  /widget/widget.js\n`);
+
+  // Pre-load the embedding model so the first user message isn't slow
+  embed('warmup').catch(() => {});
 });
