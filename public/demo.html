@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Berry PC</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0f172a; color: #e2e8f0; min-height: 100vh;
+      display: flex; flex-direction: column;
+    }
+    header {
+      background: #1e293b; border-bottom: 1px solid #334155;
+      padding: 18px 40px; display: flex; align-items: center; gap: 14px;
+    }
+    header .logo { font-size: 28px; }
+    header h1 { font-size: 20px; font-weight: 700; color: #f8fafc; }
+    header p  { font-size: 13px; color: #94a3b8; margin-top: 2px; }
+    main { flex: 1; padding: 48px 40px; max-width: 860px; margin: 0 auto; width: 100%; }
+    h2 { font-size: 28px; margin-bottom: 10px; color: #f1f5f9; }
+    .sub { color: #94a3b8; font-size: 15px; line-height: 1.7; margin-bottom: 32px; }
+    .highlight {
+      display: inline-block; background: #1d4ed8; color: #fff;
+      padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; margin-bottom: 28px;
+    }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 14px; }
+    .card {
+      background: #1e293b; border: 1px solid #334155; border-radius: 12px;
+      padding: 18px; text-align: center;
+    }
+    .card .icon { font-size: 28px; margin-bottom: 8px; }
+    .card h3 { font-size: 14px; font-weight: 600; color: #f1f5f9; margin-bottom: 4px; }
+    .card p  { font-size: 12px; color: #64748b; }
+    .hints {
+      margin-top: 36px; background: #1e293b; border: 1px solid #334155;
+      border-radius: 12px; padding: 20px 24px;
+    }
+    .hints h3 { color: #93c5fd; margin-bottom: 12px; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
+    .hints li { color: #94a3b8; font-size: 14px; line-height: 1.8; list-style: none; padding-left: 0; }
+    .hints li::before { content: "→ "; color: #3b82f6; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <span class="logo">🖥️</span>
+    <div>
+      <h1>Berry PC</h1>
+      <p>High-quality PC components &amp; custom assembly services</p>
+    </div>
+  </header>
+
+  <main>
+    <h2>Build Your Dream PC</h2>
+    <p class="sub">
+      Browse our selection of CPUs, GPUs, motherboards, RAM, storage, and peripherals.
+      Or let our expert technicians build a fully tested custom PC — tailored to your needs and budget.
+    </p>
+
+    <div class="highlight">🎉 10% off when you buy all components here + choose our assembly service</div>
+
+    <div class="grid">
+      <div class="card"><div class="icon">⚡</div><h3>CPUs</h3><p>AMD Ryzen &amp; Intel Core</p></div>
+      <div class="card"><div class="icon">🎮</div><h3>GPUs</h3><p>NVIDIA RTX &amp; AMD RX</p></div>
+      <div class="card"><div class="icon">🧠</div><h3>RAM</h3><p>DDR4 &amp; DDR5 kits</p></div>
+      <div class="card"><div class="icon">💾</div><h3>Storage</h3><p>NVMe SSD &amp; HDD</p></div>
+      <div class="card"><div class="icon">🔌</div><h3>PSUs</h3><p>80+ Gold &amp; Platinum</p></div>
+      <div class="card"><div class="icon">🖱️</div><h3>Peripherals</h3><p>Mice, keyboards, monitors</p></div>
+    </div>
+
+    <div class="hints">
+      <h3>Try asking our AI assistant</h3>
+      <ul>
+        <li>"What CPUs do you have for gaming under $300?"</li>
+        <li>"Do I qualify for the 10% discount if I buy everything here?"</li>
+        <li>"Check my order ORD-1001"</li>
+        <li>"I want a custom PC for video editing — my name is Sara, sara@example.com"</li>
+        <li>"Is an RTX 4070 compatible with an i5-14600K?"</li>
+      </ul>
+    </div>
+  </main>
+
+  <!--
+    Embed the chatbot on any website with a single script tag.
+    Change the src to your deployed server URL.
+  -->
+  <script src="http://localhost:3000/widget/widget.js" defer></script>
+
+</body>
+</html>
