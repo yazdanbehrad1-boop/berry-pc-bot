@@ -6,9 +6,11 @@ export const leadCaptureDefinition = {
   function: {
     name: 'capture_lead',
     description:
-      "Save a potential customer's contact details so the sales team can follow up. " +
-      'Call this when a user expresses buying intent, asks for a quote, requests a custom build, ' +
-      'or provides their contact information.',
+      "Save a customer's contact details so the sales team can follow up. " +
+      'Call this ONLY when the user explicitly says they are ready to purchase or place an order — ' +
+      'for example: "I want to buy this", "I\'d like to order", "I\'m ready to purchase", "how do I buy this?", "let\'s go ahead with this build". ' +
+      'Do NOT call this just because the user is browsing, asking questions, comparing options, or discussing a potential build. ' +
+      'Wait until they explicitly signal purchase intent, then ask for their name and email before calling this.',
     parameters: {
       type: 'object',
       properties: {
@@ -61,6 +63,6 @@ export async function captureLead(input, ctx = {}) {
 
   return {
     success: true,
-    message: `Thank you, ${name}! Your details have been saved and our team will reach out to ${email} shortly.`,
+    saved: { name, email, phone: phone || null, message: message || null },
   };
 }
