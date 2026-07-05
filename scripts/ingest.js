@@ -14,310 +14,29 @@ const documents = [
   // ── About the workshop ────────────────────────────────────────────────────
   {
     content: `About Berry PC:
-We specialize in the sale of high-quality PC components and custom computer assembly services.
-Customers can purchase individual parts such as CPUs, GPUs, motherboards, RAM, storage devices,
-power supplies, peripherals, monitors, and accessories, or have our experienced technicians build
-a fully customized PC tailored to their needs and budget.
-Every assembled computer is professionally tested to ensure reliability and optimal performance
-before delivery. We serve gamers, professionals, students, and everyday home users.`,
+Berry PC is a gaming-specialist shop focused exclusively on gaming PCs, gaming components, and gaming peripherals.
+We sell high-quality gaming hardware — CPUs, GPUs, motherboards, RAM, storage, PSUs, cases, cooling, and gaming peripherals
+(monitors, mice, keyboards, headsets, webcams, capture cards, and more) — and we build fully customized gaming PCs
+tailored to each customer's games, target resolution, frame rate goals, and budget.
+Every assembled gaming PC is professionally tested before delivery.
+We serve gamers: from first-time builders to enthusiasts chasing maximum FPS.`,
     metadata: { category: 'about', topic: 'overview' },
   },
 
   // ── Assembly service & discount ───────────────────────────────────────────
   {
-    content: `Custom PC assembly service:
-Our experienced technicians will build a fully customized computer based on the customer's
-specific needs and budget. We offer expert component selection guidance if the customer is unsure
-what to choose. We build gaming PCs, workstation PCs, home/office PCs, and budget builds.
+    content: `Custom gaming PC assembly service:
+Our experienced technicians build fully customized gaming rigs based on the customer's game library,
+target resolution and frame rate, and budget. We offer expert component selection guidance for customers
+unsure what to choose — from entry 1080p builds to flagship 4K rigs.
 
 10% discount offer:
-Customers who purchase ALL the components for a complete PC from our shop AND choose our
-assembly service receive a 10% discount on their total order. This applies to the entire order
-(components + assembly fee). To qualify, every component in the build must be purchased from us.
+Customers who purchase ALL components for a complete gaming PC from our shop AND choose our assembly
+service receive a 10% discount on their total order. This applies to the entire order (components + assembly fee).
+To qualify, every component in the build must be purchased from us.
 
-Every assembled PC is professionally tested before delivery to ensure reliability and
-optimal performance.`,
+Every assembled gaming PC is professionally tested before delivery.`,
     metadata: { category: 'service', topic: 'assembly-and-discount' },
-  },
-
-  // ── Products: CPUs (Gaming & High Performance) ────────────────────────────
-  {
-    content: `CPUs (Processors) — Gaming & High Performance:
-
-AMD Ryzen 9000 series (Zen 5, AM5 socket) — latest generation:
-- AMD Ryzen 5 9600X — excellent mid-range gaming CPU, 6 cores / 12 threads
-- AMD Ryzen 7 9700X — high-performance 8-core CPU, great for gaming + streaming
-- AMD Ryzen 9 9900X — 12-core powerhouse for heavy multitasking and content creation
-- AMD Ryzen 9 9950X — flagship 16-core CPU for professional and creative workloads
-
-Intel Core Ultra 200 series (Arrow Lake, LGA1851 socket) — latest generation:
-- Intel Core Ultra 5 245K — strong mid-range gaming performance
-- Intel Core Ultra 7 265K — excellent all-rounder for gaming and creative work
-- Intel Core Ultra 9 285K — Intel's top-of-the-line consumer CPU
-
-Previous generation (available at reduced prices):
-- AMD Ryzen 7000 series (AM5), Intel 13th and 14th gen Core (LGA1700)
-
-All CPUs come with manufacturer warranty.`,
-    metadata: { category: 'products', topic: 'cpus-gaming' },
-  },
-
-  // ── Products: CPUs (Budget & Office) ─────────────────────────────────────
-  {
-    content: `CPUs (Processors) — Budget & Office/Everyday Use:
-We also carry affordable processors for home, office, and everyday computing builds.
-
-Budget AMD options:
-- AMD Ryzen 3 series — ideal for basic tasks, light gaming, and student builds
-- AMD Ryzen 5 (non-X models) — great value for everyday computing and light multitasking
-
-Budget Intel options:
-- Intel Core i3 (12th/13th gen) — reliable office and everyday use processor
-- Intel Core i5 non-K models — solid all-rounder for home and work builds without overclocking
-- Intel Core Ultra 5 non-K — efficient everyday performance on the latest platform
-
-These processors are perfect for home office PCs, school/student builds, media center PCs,
-and budget-friendly custom builds. We can help pair them with the right motherboard and RAM.`,
-    metadata: { category: 'products', topic: 'cpus-budget-office' },
-  },
-
-  // ── Products: GPUs (Gaming) ───────────────────────────────────────────────
-  {
-    content: `GPUs (Graphics Cards) — Gaming:
-We carry the latest NVIDIA RTX 50 series and AMD RX 9000 series, as well as previous-gen cards.
-
-NVIDIA GeForce RTX 50 series (Blackwell) — latest generation:
-- NVIDIA GeForce RTX 5060 Ti — great budget-friendly 1080p/1440p gaming card
-- NVIDIA GeForce RTX 5070 — excellent 1440p gaming with DLSS 4 support
-- NVIDIA GeForce RTX 5070 Ti — high-end 1440p/4K gaming
-- NVIDIA GeForce RTX 5080 — near-flagship performance for 4K gaming
-- NVIDIA GeForce RTX 5090 — the most powerful consumer GPU ever made, 32GB GDDR7, ideal for 4K gaming, AI, and professional creative work
-
-AMD Radeon RX 9000 series (RDNA 4) — latest generation:
-- AMD Radeon RX 9070 — strong 1440p gaming, excellent price-to-performance
-- AMD Radeon RX 9070 XT — high-end 1440p and capable 4K gaming
-
-Previous generation (still available at lower prices):
-- NVIDIA RTX 4060, RTX 4070, RTX 4080, RTX 4090
-- AMD RX 7600, RX 7800 XT, RX 7900 XTX`,
-    metadata: { category: 'products', topic: 'gpus-gaming' },
-  },
-
-  // ── Products: GPUs (Budget, Office & Workstation) ────────────────────────
-  {
-    content: `GPUs (Graphics Cards) — Budget, Office & Workstation:
-Not everyone needs a high-end gaming GPU. We carry options for everyday and professional use.
-
-Budget & everyday GPUs:
-- NVIDIA GeForce GTX 1650 / GTX 1660 Super — affordable cards for light gaming and everyday tasks
-- NVIDIA GeForce RTX 4060 — excellent budget-friendly card for 1080p gaming and productivity
-- AMD Radeon RX 7600 — great value for 1080p gaming and everyday creative tasks
-- Intel Arc B580 — a solid budget option for 1080p gaming and content creation
-
-Workstation / professional GPUs:
-- NVIDIA RTX A2000 — entry-level professional GPU for CAD, 3D rendering, and data work
-- NVIDIA RTX A4000 — mid-range workstation GPU for professional creative applications
-These cards offer ECC memory, certified drivers for professional software (AutoCAD, SolidWorks, etc.)
-
-For office PCs with no GPU needed, we also recommend CPUs with integrated graphics
-(AMD Ryzen with Radeon Graphics, or Intel with Intel UHD/Arc graphics).`,
-    metadata: { category: 'products', topic: 'gpus-budget-workstation' },
-  },
-
-  // ── Products: RAM & Storage ───────────────────────────────────────────────
-  {
-    content: `RAM (Memory) we carry:
-- DDR4: 16GB kits (2x8GB) and 32GB kits (2x16GB) — compatible with older LGA1700 platforms
-- DDR5: 16GB, 32GB, and 64GB kits — required for AM5 (Ryzen 7000/9000) and LGA1851 (Core Ultra 200)
-- Brands: Corsair, G.Skill, Kingston, Crucial
-
-Storage devices we carry:
-- NVMe SSDs (PCIe 4.0 and 5.0): 500GB, 1TB, 2TB, 4TB options — fastest available
-- SATA SSDs: budget-friendly 2.5" drives for secondary storage or budget builds
-- HDDs: 1TB to 8TB for mass storage, backup drives, or NAS use
-- Brands: Samsung, WD, Seagate, Kingston, Crucial`,
-    metadata: { category: 'products', topic: 'ram-and-storage' },
-  },
-
-  // ── Products: Motherboards ────────────────────────────────────────────────
-  {
-    content: `Motherboards we carry:
-We stock motherboards for gaming, workstation, and everyday builds across all current platforms.
-
-AMD AM5 socket (Ryzen 7000 / 9000 series):
-- B650 chipset — great value mid-range boards for gaming and everyday builds
-- X670 chipset — higher-end boards with more PCIe lanes and overclocking support
-- B850 / X870 chipset — latest generation AM5 boards with USB4 and PCIe 5.0
-
-Intel LGA1851 socket (Core Ultra 200 / Arrow Lake):
-- B860 chipset — solid mid-range option for the latest Intel platform
-- Z890 chipset — enthusiast board for overclocking and high-end builds
-
-Intel LGA1700 socket (12th / 13th / 14th gen Core):
-- B660, H670, Z690, Z790 chipsets — still available at reduced prices
-
-Brands: ASUS (ROG, TUF, Prime), MSI (MEG, MAG, PRO), Gigabyte (AORUS, Gaming), ASRock
-We can help you match the right board to your CPU, RAM, and build goals.`,
-    metadata: { category: 'products', topic: 'motherboards' },
-  },
-
-  // ── Products: PSUs ────────────────────────────────────────────────────────
-  {
-    content: `Power Supplies (PSUs) we carry:
-We carry PSUs for all build types — from budget office builds to high-end gaming rigs.
-
-- 500W–650W: suitable for budget and mid-range builds without a discrete GPU or with a budget GPU
-- 750W–850W: recommended for mid to high-end gaming builds (RTX 5070, RX 9070 XT and similar)
-- 1000W–1200W: required for flagship builds with RTX 5080/5090 or dual-GPU workstation setups
-
-Efficiency ratings:
-- 80+ Bronze — budget-friendly, good efficiency
-- 80+ Gold — best balance of price and efficiency, recommended for most builds
-- 80+ Platinum / Titanium — premium efficiency, ideal for always-on workstations
-
-Brands: Corsair, Seasonic, be quiet!, EVGA, Thermaltake
-All PSUs come with full warranty. We recommend going slightly above your estimated wattage for headroom.`,
-    metadata: { category: 'products', topic: 'psus' },
-  },
-
-  // ── Products: Cases ───────────────────────────────────────────────────────
-  {
-    content: `PC Cases we carry:
-We stock cases for every type of build — from compact desktop builds to full gaming towers.
-
-Gaming Cases (Mid-Tower & Full-Tower):
-- High airflow designs with tempered glass side panels to show off your build
-- RGB lighting support and cable management features
-- Brands: NZXT (H series), Corsair (4000D, 5000X), Lian Li (Lancool), Phanteks (Eclipse)
-- Fit: supports ATX, E-ATX motherboards and high-end GPU lengths up to 420mm+
-
-Workstation / Professional Cases:
-- Clean, quiet designs focused on sound dampening and airflow efficiency
-- Usually no RGB, more drive bays, better cable management
-- Brands: Fractal Design (Define series), be quiet! (Silent Base), Antec (P series)
-- Ideal for content creators, video editors, and office power users
-
-Standard / Everyday Cases:
-- Simple and functional mid-tower cases for home and office builds
-- Budget-friendly, decent airflow, no frills
-- Brands: Cooler Master (MasterBox), Antec, Deepcool, Thermaltake (Versa series)
-
-Compact / On-Desk Cases (Mini-ITX & Micro-ATX):
-- Small form factor cases that sit on your desk and save space
-- Mini-ITX: very compact, great for living room PCs or minimalist builds
-- Micro-ATX: slightly larger, more expansion slots while still compact
-- Brands: Fractal Design (Node, Era), Lian Li (A4, TU150), NZXT (H1), Cooler Master (NR200)
-- Note: compact cases require careful component selection (smaller coolers, shorter GPUs)`,
-    metadata: { category: 'products', topic: 'cases' },
-  },
-
-  // ── Products: CPU Cooling ─────────────────────────────────────────────────
-  {
-    content: `CPU Cooling — AIO Liquid Coolers & Air Coolers:
-We carry a wide range of cooling solutions for both gaming and everyday builds.
-
-AIO Liquid Coolers (All-In-One):
-- 120mm / 240mm AIO — suitable for mid-range CPUs and compact cases
-- 280mm AIO — great balance of performance and noise for gaming builds
-- 360mm AIO — high-performance cooling for flagship CPUs (Ryzen 9, Core Ultra 9), ideal for overclocking
-- Brands: Corsair (iCUE series), NZXT (Kraken), Arctic (Liquid Freezer), be quiet! (Silent Loop), DeepCool
-
-Air Coolers:
-- Budget / Stock-style coolers — suitable for non-overclocked office and everyday CPUs
-- Mid-range tower coolers — excellent performance for gaming builds, quieter than stock
-  (e.g. DeepCool AK400, Scythe Fuma, Arctic Freezer series)
-- High-end dual-tower coolers — top-tier air cooling performance, rivaling 360mm AIOs
-  (e.g. Noctua NH-D15, be quiet! Dark Rock Pro, Thermalright Peerless Assassin)
-- Brands: Noctua, be quiet!, DeepCool, Scythe, Arctic, Thermalright, Cooler Master
-
-Choosing between AIO and Air:
-- Air coolers: simpler, no pump to fail, often quieter, great long-term reliability
-- AIOs: better aesthetics, great for hot CPUs in tight cases, easier RAM clearance
-We can help you pick the right cooler based on your CPU, case, and budget.`,
-    metadata: { category: 'products', topic: 'cpu-cooling' },
-  },
-
-  // ── Products: Monitors ────────────────────────────────────────────────────
-  {
-    content: `Monitors we carry:
-We stock monitors for gaming, professional work, and everyday use in various sizes and resolutions.
-
-Gaming Monitors:
-- 1080p @ 144Hz / 165Hz — budget-friendly gaming monitors, great for competitive gaming
-- 1440p @ 144Hz / 165Hz / 240Hz — the sweet spot for gaming: sharp visuals + smooth gameplay
-- 4K @ 60Hz / 144Hz — stunning visuals for high-end gaming rigs
-- Ultra-wide (21:9) monitors — immersive gaming and productivity experience
-- Refresh rates up to 360Hz available for competitive/esports players
-- Panel types: IPS (best colors), TN (fastest response), VA (best contrast)
-- Brands: LG, Samsung, ASUS (ROG/TUF), MSI, Acer (Predator/Nitro), BenQ (ZOWIE)
-
-Normal / Office / Work Monitors:
-- 1080p @ 60Hz / 75Hz IPS — clean and color-accurate for everyday tasks and office work
-- 1440p IPS — sharp and comfortable for content creation, coding, and design work
-- 4K IPS — professional-grade clarity for photo/video editing and design
-- Brands: LG, Dell (UltraSharp), ASUS (ProArt), BenQ, AOC, Philips
-
-Multi-Monitor Bundles:
-- Dual monitor bundle (2 monitors): discounted price compared to buying 2 separately
-- Triple monitor bundle (3 monitors): even greater savings for multi-screen setups
-- Available in matched pairs/trios (same model) for a consistent look
-- Bundle deals available for both gaming and office monitor setups
-- Ask us about current bundle pricing — we always offer a better deal than buying individually`,
-    metadata: { category: 'products', topic: 'monitors' },
-  },
-
-  // ── Products: Mice ────────────────────────────────────────────────────────
-  {
-    content: `Mice we carry — Gaming & Normal:
-
-Gaming Mice:
-- Lightweight wired gaming mice — under 60g, ideal for fast-paced FPS games
-- Wireless gaming mice — low-latency 2.4GHz wireless, long battery life
-- High-DPI sensors (up to 25,600+ DPI) for precise tracking at any sensitivity
-- Programmable buttons, RGB lighting, adjustable weight systems
-- Brands: Logitech (G Pro, G502), Razer (DeathAdder, Viper), SteelSeries (Rival, Aerox),
-  Zowie (EC, FK, S series — no RGB, pure performance), HyperX, Corsair
-
-Normal / Office Mice:
-- Comfortable ergonomic designs for long work sessions
-- Reliable wireless (Bluetooth or USB dongle) for a clean desk setup
-- Simple plug-and-play, no software required
-- Budget-friendly options for everyday computing
-- Brands: Logitech (M series, MX Master), Microsoft, HP, Trust
-
-We carry both right-handed and ambidextrous designs across all categories.`,
-    metadata: { category: 'products', topic: 'mice' },
-  },
-
-  // ── Products: Keyboards & Mouse Pads ─────────────────────────────────────
-  {
-    content: `Keyboards we carry — Gaming & Normal:
-
-Gaming Keyboards:
-- Mechanical keyboards with various switch types:
-  - Linear switches (e.g. Red) — smooth and quiet, great for gaming
-  - Clicky switches (e.g. Blue) — tactile and audible feedback
-  - Tactile switches (e.g. Brown) — tactile bump without the loud click, good for gaming + typing
-- Full-size (with numpad), TKL (tenkeyless), and 60%/65% compact layouts
-- RGB backlighting, per-key customization, macro support
-- Brands: Logitech (G series), Razer (BlackWidow, Huntsman), Corsair (K series),
-  SteelSeries (Apex), HyperX (Alloy), Ducky, Keychron
-
-Normal / Office Keyboards:
-- Membrane keyboards — quiet, budget-friendly, soft keystroke feel
-- Low-profile slim keyboards — sleek design for minimal desk setups
-- Wireless keyboards (Bluetooth or USB) for a cable-free workspace
-- Full-size layouts with numpad for data entry and productivity
-- Brands: Logitech (MK series, K series), Microsoft, HP, Trust
-
-Mouse Pads:
-- Small (25x21cm) — minimal desk footprint, for standard mouse usage
-- Medium (35x25cm) — most popular size, fits most setups
-- Large / Extended (80x30cm and above) — covers the full desk, fits both mouse and keyboard
-- Gaming mouse pads: low-friction surface for precise gliding, stitched edges for durability
-- Normal mouse pads: soft surface, non-slip base, comfortable for everyday office use
-- Brands: SteelSeries (QcK), Corsair (MM series), Logitech, HyperX (Fury S), Razer (Gigantus)`,
-    metadata: { category: 'products', topic: 'keyboards-and-mousepads' },
   },
 
   // ── Compatibility guidance ────────────────────────────────────────────────
@@ -359,7 +78,7 @@ We offer:
 - Dual and triple monitor bundle deals at discounted prices
 - Post-build support and warranty service
 - Upgrade consultations for existing systems
-- Build recommendations for any budget — gaming, workstation, office, or everyday use`,
+- Build recommendations for any gaming budget — from entry-level 1080p builds to flagship 4K rigs`,
     metadata: { category: 'support', topic: 'contact-and-service' },
   },
 
