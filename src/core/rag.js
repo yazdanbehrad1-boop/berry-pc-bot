@@ -8,8 +8,8 @@ const MATCH_COUNT     = parseInt(process.env.RAG_MATCH_COUNT || '6', 10);
 let extractor = null;
 async function getExtractor() {
   if (!extractor) {
-    console.log('[RAG] Loading multilingual embedding model (first run: downloads ~120MB)…');
-    extractor = await pipeline('feature-extraction', 'Xenova/paraphrase-multilingual-MiniLM-L12-v2');
+    console.log('[RAG] Loading embedding model (first run: downloads ~25MB)…');
+    extractor = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
     console.log('[RAG] Embedding model ready.');
   }
   return extractor;
