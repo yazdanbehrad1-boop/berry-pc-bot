@@ -1,4 +1,7 @@
+import { Resend } from 'resend';
 import { supabase } from '../../lib/supabase.js';
+
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 // OpenAI / Groq tool definition format
 export const leadCaptureDefinition = {
@@ -59,6 +62,23 @@ export async function captureLead(input, ctx = {}) {
       success: false,
       message: 'There was a problem saving your details. Please try again.',
     };
+  }
+
+  // Fire-and-forget email alert to shop owner
+  if (resend && process.env.ALERT_EMAIL) {
+    resend.emails.send({
+      from: 'Berry PC Bot <onboarding@resend.dev>',
+      to:   process.env.ALERT_EMAIL,
+      subject: `🎮 New lead: ${name}`,
+      html: [
+        `<h2>New purchase lead from Berry PC bot</h2>`,
+        `<p><strong>Name:</strong> ${name}</p>`,
+        `<p><strong>Email:</strong> ${email}</p>`,
+        phone   ? `<p><strong>Phone:</strong> ${phone}</p>`   : '',
+        message ? `<p><strong>Interest:</strong> ${message}</p>` : '',
+        `<hr><p style="color:#888;font-size:12px">Sent automatically by the Berry PC chatbot</p>`,
+      ].join(''),
+    }).catch(err => console.error('[Email] Lead alert failed:', err.message));
   }
 
   return {

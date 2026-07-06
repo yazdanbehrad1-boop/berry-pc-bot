@@ -5,6 +5,7 @@ import cors from 'cors';
 import widgetRouter from './interfaces/widget/routes.js';
 import { registerTelegramWebhook } from './interfaces/telegram/webhook.js';
 import { embed } from './core/rag.js';
+import { supabase } from './lib/supabase.js';
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -13,8 +14,17 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-// ── Health check ────────────────────────────────────────────────────────────
-app.get('/health', (_req, res) => res.json({ status: 'ok', ts: new Date().toISOString() }));
+// ── Health check (also keeps Supabase free tier alive) ──────────────────────
+app.get('/health', async (_req, res) => {
+  let db = 'connected';
+  try {
+    const { error } = await supabase.from('documents').select('id').limit(1);
+    if (error) db = 'error';
+  } catch {
+    db = 'unreachable';
+  }
+  res.json({ status: 'ok', db, ts: new Date().toISOString() });
+});
 
 // ── Widget REST API ─────────────────────────────────────────────────────────
 app.use('/widget', widgetRouter);

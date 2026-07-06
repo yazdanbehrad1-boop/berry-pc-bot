@@ -24,10 +24,11 @@ export async function embed(text) {
 export async function retrieve(query) {
   const queryEmbedding = await embed(query);
 
-  const { data, error } = await supabase.rpc('match_documents', {
-    query_embedding:  queryEmbedding,
-    match_threshold:  MATCH_THRESHOLD,
-    match_count:      MATCH_COUNT,
+  const { data, error } = await supabase.rpc('match_documents_hybrid', {
+    query_embedding: queryEmbedding,
+    query_text:      query,
+    match_threshold: MATCH_THRESHOLD,
+    match_count:     MATCH_COUNT,
   });
 
   if (error) {
