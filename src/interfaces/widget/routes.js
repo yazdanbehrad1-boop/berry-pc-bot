@@ -187,6 +187,7 @@ function buildWidgetScript(apiBase) {
     function addMessage (role, text) {
       var div = document.createElement('div');
       div.className = 'cb-msg ' + role;
+      div.setAttribute('dir', 'auto');
       div.textContent = text;
       messagesEl.appendChild(div);
       messagesEl.scrollTop = messagesEl.scrollHeight;
