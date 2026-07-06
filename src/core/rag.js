@@ -1,8 +1,8 @@
 import { pipeline } from '@xenova/transformers';
 import { supabase } from '../lib/supabase.js';
 
-const MATCH_THRESHOLD = parseFloat(process.env.RAG_MATCH_THRESHOLD || '0.65');
-const MATCH_COUNT     = parseInt(process.env.RAG_MATCH_COUNT || '5', 10);
+const MATCH_THRESHOLD = parseFloat(process.env.RAG_MATCH_THRESHOLD || '0.55');
+const MATCH_COUNT     = parseInt(process.env.RAG_MATCH_COUNT || '6', 10);
 
 // Model is downloaded once (~25MB) and cached locally after that
 let extractor = null;
