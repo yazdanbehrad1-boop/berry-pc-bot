@@ -2,6 +2,7 @@ import OpenAI from 'openai';
 import { retrieve } from './rag.js';
 import { shortTerm, saveLongTerm, fetchLongTerm } from './memory.js';
 import { toolDefinitions, executeTool } from './tools/index.js';
+import { supabase } from '../lib/supabase.js';
 
 // Groq is OpenAI-API-compatible, so we reuse the OpenAI SDK
 const groq = new OpenAI({
@@ -13,8 +14,13 @@ const MODEL = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // System prompt — scoped to the PC components workshop
+//
+// This is the fallback used when the admin hasn't customized the prompt yet
+// (or the bot_config lookup fails). The live prompt served to the model comes
+// from getSystemPrompt() below, which reads the admin-editable bot_config
+// table in Supabase and falls back to this constant.
 // ─────────────────────────────────────────────────────────────────────────────
-const SYSTEM_PROMPT = `You are a friendly customer-support assistant at Berry PC — a gaming-specialist shop focused entirely on gaming PCs, gaming components, and gaming peripherals.
+const DEFAULT_SYSTEM_PROMPT = `You are a friendly customer-support assistant at Berry PC — a gaming-specialist shop focused entirely on gaming PCs, gaming components, and gaming peripherals.
 
 ## What Berry PC offers
 - Sale of high-quality gaming PC components: CPUs, GPUs, motherboards, RAM, storage, power supplies, cooling, cases, and gaming peripherals (monitors, mice, keyboards, headsets, etc.).
@@ -75,6 +81,7 @@ Berry PC serves customers worldwide. Always detect the language the customer is 
 Supported languages: English, Spanish, French, Portuguese, Italian, German, Russian, Japanese, Korean, Chinese (Simplified), Arabic, and Persian (Farsi).
 - If the customer writes in Spanish, reply fully in Spanish. If they write in Arabic, reply fully in Arabic. Same for every other supported language.
 - Keep the same warm, professional tone in every language — not a word-for-word translation of the English style, but the natural equivalent in that language.
+- Never mix English words or phrases into a non-English reply. This includes small filler/hedge/connector words ("maybe", "actually", "so", "like", "just"), not only nouns and product terms — translate everything, with no exceptions. A reply is either entirely in the customer's language or it's wrong.
 - If a customer switches language mid-conversation, switch with them immediately.
 - If a customer writes in a language not on the list, respond in English and gently let them know which languages are supported.
 
@@ -86,6 +93,38 @@ HARD RULES — never break these:
 - Never tell a customer that a product "doesn't exist", "isn't available yet", or "isn't real" if it is listed in the knowledge base. That is a factual error on your part, not the customer's.
 - Never rely on your training data for product names, model numbers, specs, or availability. Your training data is outdated for hardware. The knowledge base is current.
 - If no knowledge base context is provided, or the question falls outside what the knowledge base covers, say you'll connect them with the team — do NOT guess or improvise product information from training data.`;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Admin-editable system prompt, cached in-process for SHORT_TERM_WINDOW-scale
+// call volume (avoids a DB round trip on every message).
+// ─────────────────────────────────────────────────────────────────────────────
+const PROMPT_CACHE_TTL_MS = 60_000;
+let promptCache = { value: DEFAULT_SYSTEM_PROMPT, fetchedAt: 0 };
+
+async function getSystemPrompt() {
+  if (Date.now() - promptCache.fetchedAt < PROMPT_CACHE_TTL_MS) {
+    return promptCache.value;
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('bot_config')
+      .select('system_prompt')
+      .eq('id', 1)
+      .single();
+
+    const value = !error && data?.system_prompt?.trim()
+      ? data.system_prompt
+      : DEFAULT_SYSTEM_PROMPT;
+
+    promptCache = { value, fetchedAt: Date.now() };
+    return value;
+  } catch (err) {
+    console.warn('[Agent] bot_config fetch failed, using default prompt:', err.message);
+    promptCache = { value: DEFAULT_SYSTEM_PROMPT, fetchedAt: Date.now() };
+    return DEFAULT_SYSTEM_PROMPT;
+  }
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Main chat function
@@ -138,9 +177,10 @@ export async function chat({ sessionId, message, source = 'widget' }) {
   }
 
   // ── 4. Build messages array (OpenAI format) ──────────────────────────────────
+  const systemPrompt = await getSystemPrompt();
   const systemMessage = {
     role:    'system',
-    content: SYSTEM_PROMPT + ragContext + longTermContext,
+    content: systemPrompt + ragContext + longTermContext,
   };
 
   const messages = [
@@ -214,10 +254,19 @@ export async function chat({ sessionId, message, source = 'widget' }) {
   mem.push('user',      message);
   mem.push('assistant', replyText);
 
-  Promise.all([
-    saveLongTerm(sessionId, 'user',      message,   { source }),
-    saveLongTerm(sessionId, 'assistant', replyText, { source }),
-  ]).catch((err) => console.error('[Agent] Long-term persist error:', err.message));
+  // Sequential (not Promise.all) so `created_at` reliably orders user before
+  // assistant — parallel inserts can land in the same timestamp tick, which
+  // scrambles ordering for anything sorting by created_at (e.g. the admin
+  // conversation transcript viewer). Still fire-and-forget: not awaited
+  // before returning the reply, so this adds no latency for the caller.
+  (async () => {
+    try {
+      await saveLongTerm(sessionId, 'user', message, { source });
+      await saveLongTerm(sessionId, 'assistant', replyText, { source });
+    } catch (err) {
+      console.error('[Agent] Long-term persist error:', err.message);
+    }
+  })();
 
   return replyText;
 }
