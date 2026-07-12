@@ -10,6 +10,14 @@ import { supabase } from './lib/supabase.js';
 const app  = express();
 const PORT = process.env.PORT || 3000;
 
+// Render (and most PaaS hosts) terminate TLS at their proxy and forward
+// plain HTTP internally. Without this, req.protocol always reports 'http'
+// even on a real https:// request, which made widget.js embed an
+// http:// API_BASE — the browser then silently blocks the widget's fetch
+// as mixed content on this https:// site, surfacing as "Connection error"
+// with no useful detail. Trusting the proxy's X-Forwarded-Proto fixes it.
+app.set('trust proxy', true);
+
 // ── Middleware ──────────────────────────────────────────────────────────────
 app.use(cors());
 app.use(express.json());
