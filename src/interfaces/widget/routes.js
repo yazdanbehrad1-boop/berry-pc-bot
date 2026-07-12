@@ -95,7 +95,7 @@ function buildWidgetScript(apiBase) {
     }
     #cb-header .cb-avatar {
       width: 30px; height: 30px; border-radius: 50%;
-      background: #FF3B30;
+      background: #1a232d; border: 1px solid #26313d;
       display: flex; align-items: center; justify-content: center;
       flex-shrink: 0;
     }
@@ -155,7 +155,7 @@ function buildWidgetScript(apiBase) {
     container.innerHTML = \`
       <div id="cb-header">
         <div class="cb-avatar">
-          <svg viewBox="0 0 100 112" width="16" height="18"><ellipse cx="44" cy="20" rx="6.5" ry="15" transform="rotate(-22 44 20)" fill="#1FA65A"/><ellipse cx="56" cy="20" rx="6.5" ry="15" transform="rotate(22 56 20)" fill="#1FA65A"/><circle cx="26" cy="52" r="15" fill="#fff"/><circle cx="50" cy="52" r="15" fill="#fff"/><circle cx="74" cy="52" r="15" fill="#fff"/><circle cx="38" cy="76" r="15" fill="#fff"/><circle cx="62" cy="76" r="15" fill="#fff"/><circle cx="50" cy="97" r="15" fill="#fff"/></svg>
+          <svg viewBox="0 0 100 112" width="16" height="18"><ellipse cx="44" cy="20" rx="6.5" ry="15" transform="rotate(-22 44 20)" fill="#1FA65A"/><ellipse cx="56" cy="20" rx="6.5" ry="15" transform="rotate(22 56 20)" fill="#1FA65A"/><circle cx="26" cy="52" r="15" fill="#FF3B30"/><circle cx="50" cy="52" r="15" fill="#FF3B30"/><circle cx="74" cy="52" r="15" fill="#FF3B30"/><circle cx="38" cy="76" r="15" fill="#FF3B30"/><circle cx="62" cy="76" r="15" fill="#FF3B30"/><circle cx="50" cy="97" r="15" fill="#FF3B30"/></svg>
         </div>
         <span>Berry AI</span>
       </div>
