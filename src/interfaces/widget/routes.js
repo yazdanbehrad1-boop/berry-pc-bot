@@ -1,8 +1,13 @@
 import { Router } from 'express';
 import { v4 as uuidv4 } from 'uuid';
+import { Resend } from 'resend';
 import { chat } from '../../core/agent.js';
 
 const router = Router();
+
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+const CONTACT_EMAIL = process.env.ALERT_EMAIL || 'yazdan.behrad1@gmail.com';
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /**
  * POST /widget/chat
@@ -32,6 +37,62 @@ router.post('/chat', async (req, res) => {
   } catch (err) {
     console.error('[Widget API] Error:', err.message);
     return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * POST /widget/contact
+ * Body: { name: string, email: string, message: string, website?: string }
+ *
+ * Lets the storefront send a contact-form message straight to the shop
+ * owner's inbox without the visitor leaving the site. Reuses the same
+ * Resend setup already sending lead-capture alerts (see
+ * ../../core/tools/leadCapture.js) — no separate email service needed.
+ *
+ * `website` is an undisclosed honeypot field: real visitors never see or
+ * fill it, so a non-empty value means a bot filled every input on the
+ * page. We return success without actually sending, so the bot has no
+ * signal to iterate on.
+ */
+router.post('/contact', async (req, res) => {
+  const { name, email, message, website } = req.body || {};
+
+  if (typeof website === 'string' && website.trim()) {
+    return res.json({ ok: true });
+  }
+
+  if (
+    typeof name !== 'string' || !name.trim() || name.length > 200 ||
+    typeof email !== 'string' || !EMAIL_RE.test(email.trim()) || email.length > 300 ||
+    typeof message !== 'string' || !message.trim() || message.length > 5000
+  ) {
+    return res.status(400).json({ error: 'invalid' });
+  }
+
+  if (!resend) {
+    console.warn('[Widget API] /contact called but RESEND_API_KEY is not configured');
+    return res.status(503).json({ error: 'not_configured' });
+  }
+
+  try {
+    await resend.emails.send({
+      from: 'Berry PC Website <onboarding@resend.dev>',
+      to: CONTACT_EMAIL,
+      replyTo: email.trim(),
+      subject: `Website contact form: ${name.trim()}`,
+      html: [
+        `<h2>New message from the Berry PC contact form</h2>`,
+        `<p><strong>Name:</strong> ${name.trim()}</p>`,
+        `<p><strong>Email:</strong> ${email.trim()}</p>`,
+        `<p><strong>Message:</strong></p>`,
+        `<p>${message.trim().replace(/\n/g, '<br>')}</p>`,
+        `<hr><p style="color:#888;font-size:12px">Sent from the Berry PC website contact form — reply to this email to respond directly.</p>`,
+      ].join(''),
+    });
+    return res.json({ ok: true });
+  } catch (err) {
+    console.error('[Widget API] /contact send failed:', err.message);
+    return res.status(500).json({ error: 'send_failed' });
   }
 });
 
