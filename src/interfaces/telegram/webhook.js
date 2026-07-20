@@ -3,6 +3,34 @@ import { chat } from '../../core/agent.js';
 
 let bot;
 
+// Simple per-chat rate limit so a single Telegram user can't spam the bot
+// (LLM cost) or rapidly enumerate order IDs via the order-status tool. The
+// web widget already has an equivalent limit; this brings Telegram to parity.
+const TG_WINDOW_MS = 60_000;
+const TG_MAX = 20;
+const tgWindows = new Map(); // chatId -> { count, resetAt }
+
+function tgRateLimited(chatId) {
+  const now = Date.now();
+  const entry = tgWindows.get(chatId);
+  if (!entry || entry.resetAt <= now) {
+    tgWindows.set(chatId, { count: 1, resetAt: now + TG_WINDOW_MS });
+    return false;
+  }
+  if (entry.count >= TG_MAX) return true;
+  entry.count += 1;
+  return false;
+}
+
+// Keep the window map from growing unbounded across many chats.
+const tgSweep = setInterval(() => {
+  const now = Date.now();
+  for (const [id, entry] of tgWindows) {
+    if (entry.resetAt <= now) tgWindows.delete(id);
+  }
+}, TG_WINDOW_MS);
+if (typeof tgSweep.unref === 'function') tgSweep.unref();
+
 /**
  * Register the Telegram bot webhook on the Express app.
  * @param {import('express').Application} app
@@ -39,6 +67,11 @@ export function registerTelegramWebhook(app) {
     const text    = msg.text?.trim();
 
     if (!text) return;                                  // Ignore non-text messages
+
+    if (tgRateLimited(chatId)) {
+      bot.sendMessage(chatId, "You're sending messages a bit too fast — give me a moment and try again.").catch(() => {});
+      return;
+    }
 
     // Use the Telegram chat ID as the session identifier
     const sessionId = `tg-${chatId}`;

@@ -10,6 +10,11 @@ const router = Router();
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 const CONTACT_EMAIL = process.env.ALERT_EMAIL || 'yazdan.behrad1@gmail.com';
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const MAX_MESSAGE_LEN = 4000;
+// Session ids this endpoint is willing to accept from the client — must look
+// like one we issued, so a widget client can't claim a `tg-*` (Telegram) or
+// otherwise-namespaced session belonging to someone else.
+const WIDGET_SESSION_RE = /^widget-[A-Za-z0-9-]{1,64}$/;
 
 // Per-IP abuse limits. Chat is generous (normal conversation is bursty but
 // bounded); contact is tight because each accepted request emails the owner.
@@ -29,9 +34,19 @@ router.post('/chat', chatLimiter, async (req, res) => {
     return res.status(400).json({ error: 'message is required' });
   }
 
-  // If the client doesn't send a sessionId, create one and return it
-  // so the browser can persist it (e.g. localStorage) across page loads.
-  const sessionId = clientSessionId?.trim() || `widget-${uuidv4()}`;
+  // Cap message length — unbounded input balloons embedding + LLM cost and
+  // bloats stored rows. A support question doesn't need more than this.
+  if (message.length > MAX_MESSAGE_LEN) {
+    return res.status(400).json({ error: 'message is too long' });
+  }
+
+  // Only honor a client-supplied session id if it's one we could have issued
+  // (the `widget-` namespace). Otherwise a widget client could claim another
+  // channel's session — e.g. `tg-<chatId>` — and pull that user's in-process
+  // history into its own context. Anything else gets a fresh id.
+  const sessionId = WIDGET_SESSION_RE.test(clientSessionId?.trim() || '')
+    ? clientSessionId.trim()
+    : `widget-${uuidv4()}`;
 
   try {
     const reply = await chat({
