@@ -130,8 +130,17 @@ router.post('/contact', contactLimiter, async (req, res) => {
  *   <script src="https://your-domain.com/widget/widget.js" defer></script>
  */
 router.get('/widget.js', (req, res) => {
-  // Determine the API base URL dynamically (protocol + host from request)
-  const apiBase = `${req.protocol}://${req.get('host')}`;
+  // Determine the API base URL. This value is baked into a cached, embeddable
+  // script, so the request Host must not be trusted blindly — a crafted
+  // Host / X-Forwarded-Host could otherwise inject code into the served JS
+  // (and get cache-poisoned to other visitors). Prefer an explicitly
+  // configured origin; otherwise accept the request host only if it's a plain
+  // hostname[:port] with no characters that could break out of a JS string.
+  let apiBase = process.env.PUBLIC_WIDGET_ORIGIN || '';
+  if (!apiBase) {
+    const host = req.get('host') || '';
+    apiBase = /^[A-Za-z0-9.\-:]+$/.test(host) ? `${req.protocol}://${host}` : '';
+  }
 
   const script = buildWidgetScript(apiBase);
 
@@ -149,7 +158,7 @@ function buildWidgetScript(apiBase) {
 (function () {
   'use strict';
 
-  var API_BASE   = '${apiBase}';
+  var API_BASE   = ${JSON.stringify(apiBase)};
   var STORAGE_KEY = 'chatbot_session_id';
 
   // ── Styles — Berry PC brand palette (grape red / dark navy) ─────────────────
