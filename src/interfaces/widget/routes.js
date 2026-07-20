@@ -2,6 +2,8 @@ import { Router } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { Resend } from 'resend';
 import { chat } from '../../core/agent.js';
+import { escapeHtml } from '../../lib/html.js';
+import { rateLimit } from '../../lib/rateLimit.js';
 
 const router = Router();
 
@@ -9,13 +11,18 @@ const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KE
 const CONTACT_EMAIL = process.env.ALERT_EMAIL || 'yazdan.behrad1@gmail.com';
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+// Per-IP abuse limits. Chat is generous (normal conversation is bursty but
+// bounded); contact is tight because each accepted request emails the owner.
+const chatLimiter = rateLimit({ windowMs: 60_000, max: 20 });
+const contactLimiter = rateLimit({ windowMs: 10 * 60_000, max: 5 });
+
 /**
  * POST /widget/chat
  * Body: { sessionId?: string, message: string }
  *
  * Returns: { sessionId, reply }
  */
-router.post('/chat', async (req, res) => {
+router.post('/chat', chatLimiter, async (req, res) => {
   const { message, sessionId: clientSessionId } = req.body;
 
   if (!message || typeof message !== 'string' || !message.trim()) {
@@ -54,7 +61,7 @@ router.post('/chat', async (req, res) => {
  * page. We return success without actually sending, so the bot has no
  * signal to iterate on.
  */
-router.post('/contact', async (req, res) => {
+router.post('/contact', contactLimiter, async (req, res) => {
   const { name, email, message, website } = req.body || {};
 
   if (typeof website === 'string' && website.trim()) {
@@ -74,6 +81,12 @@ router.post('/contact', async (req, res) => {
     return res.status(503).json({ error: 'not_configured' });
   }
 
+  // Escape every user-controlled value before it goes into the HTML email —
+  // the subject uses the raw trimmed name (plain-text, not HTML).
+  const safeName = escapeHtml(name.trim());
+  const safeEmail = escapeHtml(email.trim());
+  const safeMessage = escapeHtml(message.trim()).replace(/\n/g, '<br>');
+
   try {
     await resend.emails.send({
       from: 'Berry PC Website <onboarding@resend.dev>',
@@ -82,10 +95,10 @@ router.post('/contact', async (req, res) => {
       subject: `Website contact form: ${name.trim()}`,
       html: [
         `<h2>New message from the Berry PC contact form</h2>`,
-        `<p><strong>Name:</strong> ${name.trim()}</p>`,
-        `<p><strong>Email:</strong> ${email.trim()}</p>`,
+        `<p><strong>Name:</strong> ${safeName}</p>`,
+        `<p><strong>Email:</strong> ${safeEmail}</p>`,
         `<p><strong>Message:</strong></p>`,
-        `<p>${message.trim().replace(/\n/g, '<br>')}</p>`,
+        `<p>${safeMessage}</p>`,
         `<hr><p style="color:#888;font-size:12px">Sent from the Berry PC website contact form — reply to this email to respond directly.</p>`,
       ].join(''),
     });
