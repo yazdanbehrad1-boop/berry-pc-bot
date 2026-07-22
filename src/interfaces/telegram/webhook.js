@@ -89,8 +89,14 @@ export function registerTelegramWebhook(app) {
       await bot.sendMessage(chatId, reply);
     } catch (err) {
       console.error('[Telegram] Error handling message:', err.message);
+      // Same rate-limit tagging as the widget route (see agent.js) — give a
+      // specific, honest message instead of a generic failure when it's Groq's
+      // daily quota, not an actual bug.
+      const fallback = err.isRateLimit
+        ? "We're getting a lot of questions right now — please try again in a few minutes!"
+        : 'Sorry, something went wrong. Please try again in a moment.';
       try {
-        await bot.sendMessage(chatId, '⚠️ Sorry, something went wrong. Please try again in a moment.');
+        await bot.sendMessage(chatId, fallback);
       } catch (sendErr) {
         console.error('[Telegram] Failed to send error message:', sendErr.message);
       }

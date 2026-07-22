@@ -219,6 +219,10 @@ export async function chat({ sessionId, message, source = 'widget' }) {
     });
   } catch (err) {
     console.error('[Agent] Groq API error:', err.message);
+    // Tag rate-limit errors so callers (widget route, Telegram handler) can
+    // show a specific "we're busy" message instead of a generic failure —
+    // this is what a hit against Groq's free-tier daily token cap looks like.
+    err.isRateLimit = err?.status === 429 || /rate limit/i.test(err?.message || '');
     throw err;
   }
 
@@ -261,6 +265,7 @@ export async function chat({ sessionId, message, source = 'widget' }) {
       });
     } catch (err) {
       console.error('[Agent] Groq API error (after tools):', err.message);
+      err.isRateLimit = err?.status === 429 || /rate limit/i.test(err?.message || '');
       throw err;
     }
   }

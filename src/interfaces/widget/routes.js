@@ -58,7 +58,10 @@ router.post('/chat', chatLimiter, async (req, res) => {
     return res.json({ sessionId, reply });
   } catch (err) {
     console.error('[Widget API] Error:', err.message);
-    return res.status(500).json({ error: 'Internal server error' });
+    if (err.isRateLimit) {
+      return res.status(429).json({ sessionId, error: 'rate_limited' });
+    }
+    return res.status(500).json({ sessionId, error: 'internal_error' });
   }
 });
 
@@ -334,20 +337,36 @@ function buildWidgetScript(apiBase) {
       })
       .then(function (r) {
         clearTimeout(timeoutId);
-        if (!r.ok) throw new Error('http_' + r.status);
-        return r.json();
+        // Read the body regardless of status — the server always returns
+        // JSON, including on 429/500, so a non-2xx response is still real,
+        // useful information and not a network failure. Only genuine
+        // network/transport failures (DNS, offline, timeout) should reach
+        // the .catch() below and get called a "connection error".
+        return r.json().then(function (data) { return { ok: r.ok, data: data }; });
       })
-      .then(function (data) {
-        if (data.sessionId) localStorage.setItem(STORAGE_KEY, data.sessionId);
+      .then(function (result) {
+        if (result.data.sessionId) localStorage.setItem(STORAGE_KEY, result.data.sessionId);
         typingEl.remove();
-        addMessage('bot', data.reply || data.error || 'Something went wrong.');
+
+        if (result.ok) {
+          addMessage('bot', result.data.reply || 'Something went wrong.');
+          return;
+        }
+
+        var code = result.data.error;
+        var msg = code === 'rate_limited'
+          ? "We're getting a lot of questions right now — please try again in a few minutes!"
+          : code === 'message is too long'
+          ? 'That message is a bit long — try shortening it and sending again.'
+          : 'Something went wrong on our end. Please try again in a moment.';
+        addMessage('bot', msg);
       })
       .catch(function (err) {
         clearTimeout(timeoutId);
         typingEl.remove();
         var msg = (err && err.name === 'AbortError')
           ? 'This is taking longer than usual to wake up — please try sending your message again in a moment.'
-          : 'Connection error. Please try again.';
+          : 'Connection error. Please check your internet connection and try again.';
         addMessage('bot', msg);
       });
     }
