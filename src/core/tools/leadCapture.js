@@ -11,10 +11,12 @@ export const leadCaptureDefinition = {
     name: 'capture_lead',
     description:
       "Save a customer's contact details so the sales team can follow up. " +
-      'Call this ONLY when the user explicitly says they are ready to purchase or place an order — ' +
-      'for example: "I want to buy this", "I\'d like to order", "I\'m ready to purchase", "how do I buy this?", "let\'s go ahead with this build". ' +
+      'Call this when the user explicitly signals they are ready to move forward — either a purchase ' +
+      '("I want to buy this", "I\'d like to order", "I\'m ready to purchase", "how do I buy this?", "let\'s go ahead with this build") ' +
+      'or a booking/reservation for the assembly service ("I want to book the assembly service", "I\'d like to reserve a build slot", ' +
+      '"sign me up for assembly", "let\'s schedule this", "book me in"). ' +
       'Do NOT call this just because the user is browsing, asking questions, comparing options, or discussing a potential build. ' +
-      'Wait until they explicitly signal purchase intent, then ask for their name and email before calling this.',
+      'Wait until they explicitly signal purchase or booking intent, then ask for their name and email before calling this.',
     parameters: {
       type: 'object',
       properties: {
