@@ -215,6 +215,11 @@ function buildWidgetScript(apiBase) {
     .cb-typing span:nth-child(3) { animation-delay: .30s; }
     @keyframes cb-bounce { 0%,60%,100% { transform: translateY(0); } 30% { transform: translateY(-5px); } }
 
+    /* Word-by-word fade reveal for bot replies — each word fades in rather
+       than appearing instantly or being typed character-by-character. */
+    @keyframes cb-word-in { from { opacity: 0; } to { opacity: 1; } }
+    .cb-word { animation: cb-word-in .3s ease-out both; }
+
     #cb-input-row {
       padding: 10px 12px; border-top: 1px solid #26313d;
       background: #131a22;
@@ -311,6 +316,40 @@ function buildWidgetScript(apiBase) {
       return div;
     }
 
+    // Reveals a bot reply word by word, each word fading in — a lightweight
+    // stand-in for real token streaming (the backend returns the full reply
+    // in one response, not a stream) that still reads as "the bot is
+    // composing this," matching the feel of ChatGPT/similar assistants
+    // without needing to restructure the API into SSE/chunked responses.
+    function addMessageFade (role, text) {
+      var div = document.createElement('div');
+      div.className = 'cb-msg ' + role;
+      div.setAttribute('dir', 'auto');
+      messagesEl.appendChild(div);
+
+      // Keep whitespace as its own token so spacing/newlines reproduce
+      // exactly; only real word tokens get the fade treatment.
+      var tokens = text.split(/(\s+)/);
+      var i = 0;
+      function next () {
+        if (i >= tokens.length) return;
+        var token = tokens[i];
+        i += 1;
+        if (/^\s+$/.test(token)) {
+          div.appendChild(document.createTextNode(token));
+        } else {
+          var span = document.createElement('span');
+          span.className = 'cb-word';
+          span.textContent = token;
+          div.appendChild(span);
+        }
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+        setTimeout(next, 35);
+      }
+      next();
+      return div;
+    }
+
     function showTyping () {
       var d = document.createElement('div');
       d.className = 'cb-msg bot cb-typing';
@@ -358,7 +397,7 @@ function buildWidgetScript(apiBase) {
         typingEl.remove();
 
         if (result.ok) {
-          addMessage('bot', result.data.reply || 'Something went wrong.');
+          addMessageFade('bot', result.data.reply || 'Something went wrong.');
           return;
         }
 

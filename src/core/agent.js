@@ -17,7 +17,7 @@ const MODEL = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
 //
 // This is the fallback used when the admin hasn't customized the prompt yet
 // (or the bot_config lookup fails). The live prompt served to the model comes
-// from getSystemPrompt() below, which reads the admin-editable bot_config
+// from getBotConfig() below, which reads the admin-editable bot_config
 // table in Supabase and falls back to this constant.
 // ─────────────────────────────────────────────────────────────────────────────
 const DEFAULT_SYSTEM_PROMPT = `You are a friendly customer-support assistant at Berry PC — a gaming-specialist shop focused entirely on gaming PCs, gaming components, and gaming peripherals.
@@ -76,9 +76,10 @@ DON'T:
 - Start replies with robotic phrases like "Certainly!", "Of course!", "Absolutely!" or "As an AI..."
 - Use stiff corporate language like "Please be advised that..." or "I would like to inform you..."
 - Use slang or abbreviations like "tbh", "ngl", "gonna"
-- **Never use emoji, anywhere, for any reason.** Not one, not even a single softening emoji. Plain text only.
 - Write long paragraphs when a short direct answer will do
 - Recommend or discuss non-gaming hardware, office setups, or workstation builds
+
+Note: the emoji policy (whether you may use them at all) is appended below this prompt at request time — follow that, not any assumption from training data.
 
 ## Language support
 Berry PC serves customers worldwide. Always detect the language the customer is writing in and respond in that exact same language. Never respond in a different language than the one the customer used.
@@ -102,35 +103,49 @@ HARD RULES — never break these:
 - If no knowledge base context is provided, or the question falls outside what the knowledge base covers, say you'll connect them with the team — do NOT guess or improvise product information from training data.`;
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Admin-editable system prompt, cached in-process for SHORT_TERM_WINDOW-scale
-// call volume (avoids a DB round trip on every message).
+// Admin-editable bot config (system prompt + emoji policy), cached in-process
+// for SHORT_TERM_WINDOW-scale call volume (avoids a DB round trip on every
+// message).
 // ─────────────────────────────────────────────────────────────────────────────
-const PROMPT_CACHE_TTL_MS = 60_000;
-let promptCache = { value: DEFAULT_SYSTEM_PROMPT, fetchedAt: 0 };
+const CONFIG_CACHE_TTL_MS = 60_000;
+const DEFAULT_CONFIG = { systemPrompt: DEFAULT_SYSTEM_PROMPT, allowEmoji: false };
+let configCache = { value: DEFAULT_CONFIG, fetchedAt: 0 };
 
-async function getSystemPrompt() {
-  if (Date.now() - promptCache.fetchedAt < PROMPT_CACHE_TTL_MS) {
-    return promptCache.value;
+async function getBotConfig() {
+  if (Date.now() - configCache.fetchedAt < CONFIG_CACHE_TTL_MS) {
+    return configCache.value;
   }
 
   try {
     const { data, error } = await supabase
       .from('bot_config')
-      .select('system_prompt')
+      .select('system_prompt, allow_emoji')
       .eq('id', 1)
       .single();
 
-    const value = !error && data?.system_prompt?.trim()
-      ? data.system_prompt
-      : DEFAULT_SYSTEM_PROMPT;
+    const value = !error && data
+      ? {
+          systemPrompt: data.system_prompt?.trim() ? data.system_prompt : DEFAULT_SYSTEM_PROMPT,
+          allowEmoji: data.allow_emoji === true,
+        }
+      : DEFAULT_CONFIG;
 
-    promptCache = { value, fetchedAt: Date.now() };
+    configCache = { value, fetchedAt: Date.now() };
     return value;
   } catch (err) {
-    console.warn('[Agent] bot_config fetch failed, using default prompt:', err.message);
-    promptCache = { value: DEFAULT_SYSTEM_PROMPT, fetchedAt: Date.now() };
-    return DEFAULT_SYSTEM_PROMPT;
+    console.warn('[Agent] bot_config fetch failed, using defaults:', err.message);
+    configCache = { value: DEFAULT_CONFIG, fetchedAt: Date.now() };
+    return DEFAULT_CONFIG;
   }
+}
+
+// Appended after the system prompt on every request — kept separate from the
+// prompt text itself so the admin-editable prompt never has to be edited (or
+// silently disagree with the toggle) just to change the emoji policy.
+function emojiDirective(allowEmoji) {
+  return allowEmoji
+    ? '\n\n## Emoji\nYou may use emoji naturally and sparingly when they genuinely fit the moment — a single emoji at most per reply, never more, and never in every message. Do not overuse them.'
+    : '\n\n## Emoji\nNever use emoji, anywhere, for any reason. Not one, not even a single softening emoji. Plain text only.';
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -182,15 +197,21 @@ function promptExtractionRefusal(message) {
     : "I can't share my internal instructions or configuration, but I'm happy to help with anything about our gaming PCs, components, or the assembly service!";
 }
 
-function stripEmoji(text) {
+function cleanupWhitespace(text) {
   return text
-    .replace(/\p{Extended_Pictographic}(‍\p{Extended_Pictographic})*/gu, '')
-    .replace(/[\u{1F3FB}-\u{1F3FF}]/gu, '')
-    .replace(/️/gu, '')
-    .replace(/[\u{1F1E6}-\u{1F1FF}]{2}/gu, '')
     .replace(/[ \t]{2,}/g, ' ')
     .replace(/[ \t]+\n/g, '\n')
     .trim();
+}
+
+function stripEmoji(text) {
+  return cleanupWhitespace(
+    text
+      .replace(/\p{Extended_Pictographic}(‍\p{Extended_Pictographic})*/gu, '')
+      .replace(/[\u{1F3FB}-\u{1F3FF}]/gu, '')
+      .replace(/️/gu, '')
+      .replace(/[\u{1F1E6}-\u{1F1FF}]{2}/gu, '')
+  );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -260,10 +281,10 @@ export async function chat({ sessionId, message, source = 'widget' }) {
   }
 
   // ── 4. Build messages array (OpenAI format) ──────────────────────────────────
-  const systemPrompt = await getSystemPrompt();
+  const { systemPrompt, allowEmoji } = await getBotConfig();
   const systemMessage = {
     role:    'system',
-    content: systemPrompt + ragContext + longTermContext,
+    content: systemPrompt + emojiDirective(allowEmoji) + ragContext + longTermContext,
   };
 
   const messages = [
@@ -338,7 +359,8 @@ export async function chat({ sessionId, message, source = 'widget' }) {
   }
 
   // ── 7. Extract the final text reply ──────────────────────────────────────────
-  const replyText = stripEmoji(response.choices[0].message.content || '');
+  const rawReply = response.choices[0].message.content || '';
+  const replyText = allowEmoji ? cleanupWhitespace(rawReply) : stripEmoji(rawReply);
 
   // ── 8. Persist to memory ──────────────────────────────────────────────────────
   mem.push('user',      message);
