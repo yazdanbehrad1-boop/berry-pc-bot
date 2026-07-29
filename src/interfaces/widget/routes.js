@@ -169,7 +169,7 @@ function buildWidgetScript(apiBase) {
     #cb-launcher {
       position: fixed; bottom: 24px; right: 24px; z-index: 9998;
       width: 56px; height: 56px; border-radius: 50%;
-      background: #FF3B30; border: none; cursor: pointer;
+      background: #F35148; border: none; cursor: pointer;
       box-shadow: 0 4px 14px rgba(0,0,0,.35);
       display: flex; align-items: center; justify-content: center;
       transition: transform .2s;
@@ -208,7 +208,7 @@ function buildWidgetScript(apiBase) {
     }
     .cb-msg { max-width: 80%; padding: 10px 14px; border-radius: 14px; line-height: 1.4; }
     .cb-msg.bot  { background: #1a232d; color: #e8edf3; border-bottom-left-radius: 4px; align-self: flex-start; }
-    .cb-msg.user { background: #FF3B30; color: #fff; border-bottom-right-radius: 4px; align-self: flex-end; }
+    .cb-msg.user { background: #F35148; color: #fff; border-bottom-right-radius: 4px; align-self: flex-end; }
     .cb-typing   { display: flex; gap: 4px; align-items: center; padding: 10px 14px; }
     .cb-typing span { width: 7px; height: 7px; border-radius: 50%; background: #5c6773; animation: cb-bounce .9s infinite; }
     .cb-typing span:nth-child(2) { animation-delay: .15s; }
@@ -227,13 +227,13 @@ function buildWidgetScript(apiBase) {
       background: #0d1117; color: #e8edf3;
     }
     #cb-input::placeholder { color: #5c6773; }
-    #cb-input:focus { border-color: #FF3B30; }
+    #cb-input:focus { border-color: #F35148; }
     #cb-send {
-      background: #FF3B30; border: none; border-radius: 10px;
+      background: #F35148; border: none; border-radius: 10px;
       color: #fff; padding: 0 16px; cursor: pointer; font-size: 20px;
       display: flex; align-items: center; justify-content: center;
     }
-    #cb-send:hover { background: #c62f26; }
+    #cb-send:hover { background: #CD2E25; }
   \`;
 
   // ── DOM builder ────────────────────────────────────────────────────────────
@@ -256,7 +256,7 @@ function buildWidgetScript(apiBase) {
     container.innerHTML = \`
       <div id="cb-header">
         <div class="cb-avatar">
-          <svg viewBox="0 0 100 112" width="16" height="18"><ellipse cx="44" cy="20" rx="6.5" ry="15" transform="rotate(-22 44 20)" fill="#1FA65A"/><ellipse cx="56" cy="20" rx="6.5" ry="15" transform="rotate(22 56 20)" fill="#1FA65A"/><circle cx="26" cy="52" r="15" fill="#FF3B30"/><circle cx="50" cy="52" r="15" fill="#FF3B30"/><circle cx="74" cy="52" r="15" fill="#FF3B30"/><circle cx="38" cy="76" r="15" fill="#FF3B30"/><circle cx="62" cy="76" r="15" fill="#FF3B30"/><circle cx="50" cy="97" r="15" fill="#FF3B30"/></svg>
+          <svg viewBox="0 0 100 112" width="16" height="18"><ellipse cx="44" cy="20" rx="6.5" ry="15" transform="rotate(-22 44 20)" fill="#1FA65A"/><ellipse cx="56" cy="20" rx="6.5" ry="15" transform="rotate(22 56 20)" fill="#1FA65A"/><circle cx="26" cy="52" r="15" fill="#F35148"/><circle cx="50" cy="52" r="15" fill="#F35148"/><circle cx="74" cy="52" r="15" fill="#F35148"/><circle cx="38" cy="76" r="15" fill="#F35148"/><circle cx="62" cy="76" r="15" fill="#F35148"/><circle cx="50" cy="97" r="15" fill="#F35148"/></svg>
         </div>
         <span>Berry AI</span>
       </div>
