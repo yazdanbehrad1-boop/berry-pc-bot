@@ -280,6 +280,15 @@ function buildWidgetScript(apiBase) {
       if (!container.classList.contains('cb-hidden')) inputEl.focus();
     });
 
+    // Close on outside click — skip the launcher itself, since it already
+    // toggles via the listener above and would otherwise immediately
+    // reopen (or double-close) on the very click that opens it.
+    document.addEventListener('click', function (e) {
+      if (container.classList.contains('cb-hidden')) return;
+      if (container.contains(e.target) || launcher.contains(e.target)) return;
+      container.classList.add('cb-hidden');
+    });
+
     // Send
     document.getElementById('cb-send').addEventListener('click', send);
     inputEl.addEventListener('keydown', function (e) {
