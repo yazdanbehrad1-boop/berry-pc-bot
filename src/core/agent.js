@@ -10,7 +10,41 @@ const groq = new OpenAI({
   baseURL: 'https://api.groq.com/openai/v1',
 });
 
-const MODEL = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
+// Groq periodically retires hosted models — llama-3.3-70b-versatile (this
+// bot's original model) was pulled entirely and started 404ing on every
+// single request, taking the whole bot down until someone noticed. Try a
+// short chain of currently-hosted models instead of one hardcoded model, so
+// a provider-side deprecation doesn't do that again. Two models from the
+// same family (fast fallback within OpenAI's GPT-OSS line) plus one from a
+// different provider entirely (Qwen), so a systemic issue with OpenAI's
+// models on Groq specifically still leaves a working option.
+const MODEL_CHAIN = [
+  'openai/gpt-oss-120b', // primary
+  'openai/gpt-oss-20b',  // fallback 1 — same family, smaller/faster
+  'qwen/qwen3.8-27b',    // fallback 2 — different provider
+];
+
+// Tries each model in MODEL_CHAIN in order, falling through to the next on
+// ANY failure (a deprecated/missing model, a transient error, a per-model
+// rate limit — Groq's free tier meters each model separately, so a 429 on
+// one doesn't mean the others are exhausted too). Only throws once every
+// model in the chain has failed.
+async function createChatCompletion(params) {
+  let lastErr;
+  for (const model of MODEL_CHAIN) {
+    try {
+      return await groq.chat.completions.create({ ...params, model });
+    } catch (err) {
+      console.error(`[Agent] Groq call failed on model "${model}":`, err.message);
+      lastErr = err;
+    }
+  }
+  // Tag rate-limit errors so callers (widget route, Telegram handler) can
+  // show a specific "we're busy" message instead of a generic failure —
+  // only meaningful once every model in the chain is exhausted.
+  lastErr.isRateLimit = lastErr?.status === 429 || /rate limit/i.test(lastErr?.message || '');
+  throw lastErr;
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // System prompt — scoped to the PC components workshop
@@ -294,24 +328,13 @@ export async function chat({ sessionId, message, source = 'widget' }) {
   ];
 
   // ── 5. First Groq call ───────────────────────────────────────────────────────
-  let response;
-  try {
-    response = await groq.chat.completions.create({
-      model:       MODEL,
-      max_tokens:  1024,
-      temperature: 0.4,
-      tools:       toolDefinitions,
-      tool_choice: 'auto',
-      messages,
-    });
-  } catch (err) {
-    console.error('[Agent] Groq API error:', err.message);
-    // Tag rate-limit errors so callers (widget route, Telegram handler) can
-    // show a specific "we're busy" message instead of a generic failure —
-    // this is what a hit against Groq's free-tier daily token cap looks like.
-    err.isRateLimit = err?.status === 429 || /rate limit/i.test(err?.message || '');
-    throw err;
-  }
+  let response = await createChatCompletion({
+    max_tokens:  1024,
+    temperature: 0.4,
+    tools:       toolDefinitions,
+    tool_choice: 'auto',
+    messages,
+  });
 
   // ── 6. Agentic tool-use loop ─────────────────────────────────────────────────
   while (response.choices[0].finish_reason === 'tool_calls') {
@@ -342,20 +365,13 @@ export async function chat({ sessionId, message, source = 'widget' }) {
 
     messages.push(...toolResults);
 
-    try {
-      response = await groq.chat.completions.create({
-        model:       MODEL,
-        max_tokens:  1024,
-        temperature: 0.4,
-        tools:       toolDefinitions,
-        tool_choice: 'auto',
-        messages,
-      });
-    } catch (err) {
-      console.error('[Agent] Groq API error (after tools):', err.message);
-      err.isRateLimit = err?.status === 429 || /rate limit/i.test(err?.message || '');
-      throw err;
-    }
+    response = await createChatCompletion({
+      max_tokens:  1024,
+      temperature: 0.4,
+      tools:       toolDefinitions,
+      tool_choice: 'auto',
+      messages,
+    });
   }
 
   // ── 7. Extract the final text reply ──────────────────────────────────────────
