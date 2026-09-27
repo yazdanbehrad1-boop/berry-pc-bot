@@ -164,6 +164,53 @@ function buildWidgetScript(apiBase) {
   var API_BASE   = ${JSON.stringify(apiBase)};
   var STORAGE_KEY = 'chatbot_session_id';
 
+  // ── UI text, in the host page's language (<html lang>) ──────────────────────
+  // The bot's replies already follow the language the visitor writes in; this
+  // covers the widget's own labels. Unknown languages fall back to English.
+  var STRINGS = {
+    en: {
+      open: "Open chat",
+      placeholder: "Type a message…",
+      send: "Send message",
+      welcome: "Hi there! How can I help you today?",
+      fallback: "Something went wrong.",
+      rateLimited: "We're getting a lot of questions right now — please try again in a few minutes!",
+      tooLong: "That message is a bit long — try shortening it and sending again.",
+      serverError: "Something went wrong on our end. Please try again in a moment.",
+      wakeUp: "This is taking longer than usual to wake up — please try sending your message again in a moment.",
+      connection: "Connection error. Please check your internet connection and try again."
+    },
+    es: {
+      open: "Abrir chat",
+      placeholder: "Escribe un mensaje…",
+      send: "Enviar mensaje",
+      welcome: "¡Hola! ¿En qué puedo ayudarte hoy?",
+      fallback: "Algo ha salido mal.",
+      rateLimited: "Estamos recibiendo muchas preguntas ahora mismo. ¡Vuelve a intentarlo en unos minutos!",
+      tooLong: "Ese mensaje es un poco largo. Prueba a acortarlo y envíalo de nuevo.",
+      serverError: "Algo ha fallado por nuestra parte. Vuelve a intentarlo en un momento.",
+      wakeUp: "Está tardando más de lo habitual en arrancar. Vuelve a enviar tu mensaje en un momento.",
+      connection: "Error de conexión. Comprueba tu conexión a internet y vuelve a intentarlo."
+    },
+    ca: {
+      open: "Obre el xat",
+      placeholder: "Escriu un missatge…",
+      send: "Envia el missatge",
+      welcome: "Hola! En què et puc ajudar avui?",
+      fallback: "Alguna cosa ha fallat.",
+      rateLimited: "Ara mateix rebem moltes preguntes. Torna-ho a provar d’aquí a uns minuts!",
+      tooLong: "Aquest missatge és una mica llarg. Prova d’escurçar-lo i torna’l a enviar.",
+      serverError: "Alguna cosa ha fallat per part nostra. Torna-ho a provar d’aquí a un moment.",
+      wakeUp: "Està trigant més del normal a arrencar. Torna a enviar el missatge d’aquí a un moment.",
+      connection: "Error de connexió. Comprova la connexió a internet i torna-ho a provar."
+    }
+  };
+  function pageStrings () {
+    var code = (document.documentElement.lang || '').slice(0, 2).toLowerCase();
+    return STRINGS[code] || STRINGS.en;
+  }
+  var T = pageStrings();
+
   // ── Styles — Berry PC brand palette (grape red / dark navy) ─────────────────
   var css = \`
     #cb-launcher {
@@ -180,6 +227,9 @@ function buildWidgetScript(apiBase) {
     #cb-container {
       position: fixed; bottom: 90px; right: 24px; z-index: 9999;
       width: 360px; max-height: 520px;
+      /* Phones narrower than 360px + the 24px right offset would push the
+         left edge off-screen — keep a 16px gutter instead. */
+      max-width: calc(100vw - 40px);
       background: #131a22; border: 1px solid #26313d; border-radius: 16px;
       box-shadow: 0 8px 30px rgba(0,0,0,.45);
       display: flex; flex-direction: column;
@@ -206,7 +256,7 @@ function buildWidgetScript(apiBase) {
       display: flex; flex-direction: column; gap: 10px;
       background: #131a22;
     }
-    .cb-msg { max-width: 80%; padding: 10px 14px; border-radius: 14px; line-height: 1.4; }
+    .cb-msg { max-width: 80%; padding: 10px 14px; border-radius: 14px; line-height: 1.4; overflow-wrap: anywhere; }
     .cb-msg.bot  { background: #1a232d; color: #e8edf3; border-bottom-left-radius: 4px; align-self: flex-start; }
     .cb-msg.user { background: #F35148; color: #fff; border-bottom-right-radius: 4px; align-self: flex-end; }
     .cb-typing   { display: flex; gap: 4px; align-items: center; padding: 10px 14px; }
@@ -250,7 +300,6 @@ function buildWidgetScript(apiBase) {
     // Launcher button
     var launcher = document.createElement('button');
     launcher.id = 'cb-launcher';
-    launcher.setAttribute('aria-label', 'Open chat');
     launcher.innerHTML = '<svg viewBox="0 0 24 24"><path d="M20 2H4a2 2 0 0 0-2 2v18l4-4h14a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2z"/></svg>';
     document.body.appendChild(launcher);
 
@@ -267,7 +316,7 @@ function buildWidgetScript(apiBase) {
       </div>
       <div id="cb-messages"></div>
       <div id="cb-input-row">
-        <textarea id="cb-input" rows="1" placeholder="Type a message…"></textarea>
+        <textarea id="cb-input" rows="1"></textarea>
         <button id="cb-send">&#10148;</button>
       </div>
     \`;
@@ -275,9 +324,28 @@ function buildWidgetScript(apiBase) {
 
     var messagesEl = document.getElementById('cb-messages');
     var inputEl    = document.getElementById('cb-input');
+    var sendEl     = document.getElementById('cb-send');
 
     // Show welcome message
-    addMessage('bot', 'Hi there! How can I help you today?');
+    var welcomeEl = addMessage('bot', T.welcome);
+
+    // (Re)label everything in the page's current language. The storefront
+    // switches language without a full page load — it only updates
+    // <html lang> — so follow that attribute live.
+    function applyLang () {
+      T = pageStrings();
+      launcher.setAttribute('aria-label', T.open);
+      inputEl.setAttribute('placeholder', T.placeholder);
+      sendEl.setAttribute('aria-label', T.send);
+      welcomeEl.textContent = T.welcome;
+    }
+    applyLang();
+    if (window.MutationObserver) {
+      new MutationObserver(applyLang).observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['lang'],
+      });
+    }
 
     // Toggle
     launcher.addEventListener('click', function () {
@@ -295,7 +363,7 @@ function buildWidgetScript(apiBase) {
     });
 
     // Send
-    document.getElementById('cb-send').addEventListener('click', send);
+    sendEl.addEventListener('click', send);
     inputEl.addEventListener('keydown', function (e) {
       if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
     });
@@ -328,14 +396,16 @@ function buildWidgetScript(apiBase) {
       messagesEl.appendChild(div);
 
       // Keep whitespace as its own token so spacing/newlines reproduce
-      // exactly; only real word tokens get the fade treatment.
-      var tokens = text.split(/(\s+)/);
+      // exactly; only real word tokens get the fade treatment. (Double
+      // backslashes: this script lives inside a template literal, where a
+      // lone \\s would be served as a plain "s".)
+      var tokens = text.split(/(\\s+)/);
       var i = 0;
       function next () {
         if (i >= tokens.length) return;
         var token = tokens[i];
         i += 1;
-        if (/^\s+$/.test(token)) {
+        if (/^\\s+$/.test(token)) {
           div.appendChild(document.createTextNode(token));
         } else {
           var span = document.createElement('span');
@@ -397,24 +467,22 @@ function buildWidgetScript(apiBase) {
         typingEl.remove();
 
         if (result.ok) {
-          addMessageFade('bot', result.data.reply || 'Something went wrong.');
+          addMessageFade('bot', result.data.reply || T.fallback);
           return;
         }
 
         var code = result.data.error;
         var msg = code === 'rate_limited'
-          ? "We're getting a lot of questions right now — please try again in a few minutes!"
+          ? T.rateLimited
           : code === 'message is too long'
-          ? 'That message is a bit long — try shortening it and sending again.'
-          : 'Something went wrong on our end. Please try again in a moment.';
+          ? T.tooLong
+          : T.serverError;
         addMessage('bot', msg);
       })
       .catch(function (err) {
         clearTimeout(timeoutId);
         typingEl.remove();
-        var msg = (err && err.name === 'AbortError')
-          ? 'This is taking longer than usual to wake up — please try sending your message again in a moment.'
-          : 'Connection error. Please check your internet connection and try again.';
+        var msg = (err && err.name === 'AbortError') ? T.wakeUp : T.connection;
         addMessage('bot', msg);
       });
     }
